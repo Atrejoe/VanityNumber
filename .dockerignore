@@ -1,0 +1,38 @@
+# Ignore build output
+**/bin/
+**/obj/
+**/out/
+
+# Ignore test results
+**/TestResults/
+
+# Ignore IDE files
+**/.vs/
+**/.vscode/
+**/.idea/
+*.user
+*.suo
+
+# Ignore git
+.git/
+.gitignore
+.gitattributes
+
+# Ignore documentation
+*.md
+!README.md
+
+# Ignore scripts
+**/*.ps1
+
+# Ignore raw dictionaries
+**/*_raw.txt
+**/*_backup.txt
+
+# Ignore coverage reports
+**/CoverageReport/
+**/coverage.*.xml
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
