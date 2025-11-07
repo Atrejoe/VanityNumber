@@ -53,12 +53,12 @@ public class VanityNumberService : IVanityNumberService
         // Validate phone number length (max 10 digits for phone keypad mapping)
         if (cleanNumber.Length < 3)
         {
-            throw new ArgumentException("Phone number must contain at least 3 digits after cleaning.", nameof(request.PhoneNumber));
+            throw new ArgumentException("Phone number must contain at least 3 digits after cleaning.", nameof(request));
         }
         
         if (cleanNumber.Length > 10)
         {
-            throw new ArgumentException("Phone number must contain at most 10 digits after cleaning.", nameof(request.PhoneNumber));
+            throw new ArgumentException("Phone number must contain at most 10 digits after cleaning.", nameof(request));
         }
 
         var dictionaryTypes = request.DictionaryTypes;
@@ -120,27 +120,27 @@ public class VanityNumberService : IVanityNumberService
     /// <param name="length">The length of the segment to replace.</param>
     /// <param name="word">The word to insert.</param>
     /// <returns>The vanity number with the word replacing the digit segment.</returns>
-    private string BuildVanityNumber(string phoneNumber, int start, int length, string word)
+    private static string BuildVanityNumber(string phoneNumber, int start, int length, string word)
     {
-        var chars = phoneNumber.ToCharArray();
-        
         // Build the vanity number with the word replacing the digits
-        var result = "";
+        var result = new System.Text.StringBuilder();
         
-        for (int i = 0; i < phoneNumber.Length; i++)
+        int index = 0;
+        while (index < phoneNumber.Length)
         {
-            if (i == start)
+            if (index == start)
             {
-                result += word;
-                i += length - 1; // Skip the digits that were replaced
+                result.Append(word);
+                index += length; // Skip the digits that were replaced
             }
-            else if (i < phoneNumber.Length)
+            else
             {
-                result += phoneNumber[i];
+                result.Append(phoneNumber[index]);
+                index++;
             }
         }
 
-        return result;
+        return result.ToString();
     }
 
     /// <summary>

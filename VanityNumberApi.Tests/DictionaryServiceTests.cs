@@ -22,7 +22,7 @@ public class DictionaryServiceTests
 
         // Note: Result depends on actual dictionary content
         // This test validates the service is working, not specific dictionary content
-        Assert.True(result is true or false); // Service should return a boolean
+        Assert.IsType<bool>(result); // Service should return a boolean
     }
 
     [Fact]
@@ -126,8 +126,8 @@ public class DictionaryServiceTests
         var hasUrbanWords = service.IsWord("COOL", DictionaryType.Urban);
 
         // At least verify the service doesn't crash and returns boolean results
-        Assert.True(hasDutchWords is true or false);
-        Assert.True(hasEnglishWords is true or false);
-        Assert.True(hasUrbanWords is true or false);
+        Assert.IsType<bool>(hasDutchWords);
+        Assert.IsType<bool>(hasEnglishWords);
+        Assert.IsType<bool>(hasUrbanWords);
     }
 }

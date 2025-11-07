@@ -25,9 +25,7 @@ builder.Services.AddOpenApiDocument(config =>
         document.Info.Description += "\n\nAPI uses XML documentation for detailed endpoint descriptions.";
     };
     
-    // Include XML comments for Swagger documentation
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    // XML comments would go here if XML documentation is enabled in the project
 });
 
 // Register our services
@@ -49,4 +47,4 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

@@ -52,7 +52,7 @@ public class DictionaryService : IDictionaryService
     /// <param name="resourceName">Fully qualified name of the embedded resource.</param>
     /// <returns>A hash set containing all words from the dictionary.</returns>
     /// <exception cref="FileNotFoundException">Thrown when the dictionary resource is not found.</exception>
-    private HashSet<string> LoadDictionary(string resourceName)
+    private static HashSet<string> LoadDictionary(string resourceName)
     {
         var words = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var assembly = Assembly.GetExecutingAssembly();
@@ -78,18 +78,18 @@ public class DictionaryService : IDictionaryService
     }
 
     /// <inheritdoc />
-    public bool IsWord(string word, DictionaryType dictionaryTypes)
+    public bool IsWord(string word, DictionaryType dictionaryType)
     {
-        if (dictionaryTypes == DictionaryType.None)
+        if (dictionaryType == DictionaryType.None)
             return false;
 
         var upperWord = word.ToUpperInvariant();
 
-        if (dictionaryTypes.HasFlag(DictionaryType.Dutch) && _dutchWords.Contains(upperWord))
+        if (dictionaryType.HasFlag(DictionaryType.Dutch) && _dutchWords.Contains(upperWord))
             return true;
-        if (dictionaryTypes.HasFlag(DictionaryType.English) && _englishWords.Contains(upperWord))
+        if (dictionaryType.HasFlag(DictionaryType.English) && _englishWords.Contains(upperWord))
             return true;
-        if (dictionaryTypes.HasFlag(DictionaryType.Urban) && _urbanWords.Contains(upperWord))
+        if (dictionaryType.HasFlag(DictionaryType.Urban) && _urbanWords.Contains(upperWord))
             return true;
 
         return false;

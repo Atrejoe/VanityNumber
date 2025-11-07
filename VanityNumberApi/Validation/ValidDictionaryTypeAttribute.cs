@@ -6,6 +6,7 @@ namespace VanityNumberApi.Validation;
 /// <summary>
 /// Validates that a DictionaryType value contains only valid flag combinations.
 /// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
 public class ValidDictionaryTypeAttribute : ValidationAttribute
 {
     /// <summary>
