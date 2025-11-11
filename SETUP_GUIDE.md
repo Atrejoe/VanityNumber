@@ -8,12 +8,12 @@ A modern, mobile-friendly **Blazor WebAssembly** front-end application has been 
 
 ```
 naamnummers/
-├── VanityNumberApi/              # Backend API
-├── VanityNumberApi.Core/         # Core business logic
-├── VanityNumberApi.Tests/        # API tests
-├── VanityNumberApi.Web/          # ⭐ NEW: Blazor WebAssembly Frontend
-├── VanityNumberApi.DictionarySanitizer/
-└── VanityNumberApi.DictionarySanitizer.Tool/
+├── VanityNumber/              # Backend API
+├── VanityNumber.Core/         # Core business logic
+├── VanityNumber.Tests/        # API tests
+├── VanityNumber.Web/          # ⭐ NEW: Blazor WebAssembly Frontend
+├── VanityNumber.DictionarySanitizer/
+└── VanityNumber.DictionarySanitizer.Tool/
 ```
 
 ## 🚀 Quick Start (Running Both API and Web App)
@@ -22,14 +22,14 @@ naamnummers/
 
 **Terminal 1 - Start the API:**
 ```bash
-cd VanityNumberApi
+cd VanityNumber
 dotnet run
 ```
 The API will be available at: `https://localhost:7001`
 
 **Terminal 2 - Start the Blazor App:**
 ```bash
-cd VanityNumberApi.Web
+cd VanityNumber.Web
 dotnet run
 ```
 The web app will be available at: `https://localhost:7002`
@@ -38,20 +38,20 @@ The web app will be available at: `https://localhost:7002`
 
 1. Right-click on the solution
 2. Set "Multiple Startup Projects"
-3. Set both `VanityNumberApi` and `VanityNumberApi.Web` to "Start"
+3. Set both `VanityNumber` and `VanityNumber.Web` to "Start"
 4. Press F5
 
 ### Option 3: Using dotnet watch (Hot Reload)
 
 **Terminal 1:**
 ```bash
-cd VanityNumberApi
+cd VanityNumber
 dotnet watch run
 ```
 
 **Terminal 2:**
 ```bash
-cd VanityNumberApi.Web
+cd VanityNumber.Web
 dotnet watch run
 ```
 
@@ -107,7 +107,7 @@ The API has been configured with CORS to allow the Blazor app to communicate:
 
 ### Changing Colors
 
-Edit `VanityNumberApi.Web/wwwroot/css/app.css`:
+Edit `VanityNumber.Web/wwwroot/css/app.css`:
 
 ```css
 :root {
@@ -120,7 +120,7 @@ Edit `VanityNumberApi.Web/wwwroot/css/app.css`:
 
 ### Changing API URL
 
-Edit `VanityNumberApi.Web/wwwroot/appsettings.json`:
+Edit `VanityNumber.Web/wwwroot/appsettings.json`:
 
 ```json
 {
@@ -143,7 +143,7 @@ Edit `VanityNumberApi.Web/wwwroot/appsettings.json`:
    - `VanityNumberResult` - API response model
    - `DictionaryType` - Enum for dictionary selection
 
-2. **Services** (`Services/VanityNumberApiService.cs`)
+2. **Services** (`Services/VanityNumberService.cs`)
    - API communication layer
    - Error handling
    - JSON serialization
@@ -206,7 +206,7 @@ Open browser console and check for CORS errors. Should see none.
 ### Adding New Features
 
 1. **New API Endpoint**: 
-   - Add to `VanityNumberApiService.cs`
+   - Add to `VanityNumberService.cs`
    - Add models to `Models/VanityNumberModels.cs`
 
 2. **New Page**:
@@ -224,7 +224,7 @@ Open browser console and check for CORS errors. Should see none.
 ### Publishing for Production
 
 ```bash
-cd VanityNumberApi.Web
+cd VanityNumber.Web
 dotnet publish -c Release -o ./publish
 ```
 

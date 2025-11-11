@@ -1,14 +1,23 @@
-version: '3.8'
-
 services:
   vanity-api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./VanityNumber.Api/Dockerfile
     container_name: vanity-number-api
     ports:
-      - "5000:8080"
+      - "8081:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
     restart: unless-stopped
+
+  vanity-web:
+    build:
+      context: .
+      dockerfile: ./VanityNumber.Web/Dockerfile
+    container_name: vanity-number-web
+    ports:
+      - "8082:8080"
+    restart: unless-stopped
+    depends_on:
+      - vanity-api

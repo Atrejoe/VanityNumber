@@ -18,7 +18,8 @@ A .NET 10 Web API that converts phone numbers into vanity numbers using multiple
 The API uses standard T9 phone keypad mapping with **enhanced leet speak support**:
 
 ### Standard T9 Mapping
-```
+
+``` txt
 ┌─────────┬─────────┬─────────┐
 │    1    │    2    │    3    │
 │         │   ABC   │   DEF   │
@@ -52,6 +53,7 @@ The API includes leet speak mappings to increase matching possibilities:
 | 9     | WXYZ            | -                      | WXYZ             |
 
 **Example:** The phone number `828626` can match the word "BATMAN":
+
 - Position 0: `8` → **B** (leet speak)
 - Position 1: `2` → **A** (standard)
 - Position 2: `8` → **T** (standard)
@@ -64,6 +66,7 @@ The API includes leet speak mappings to increase matching possibilities:
 **Vanity Display Format**: When displaying matches, digits where leet speak was used are shown as the original digit, while standard mappings are shown as lowercase letters. This ensures that converting the vanity display back to a phone number preserves the original number.
 
 **Example:** The phone number `828646` can match "batman":
+
 - Position 0: `8` → `8` displayed (used leet 8→B)
 - Position 1: `2` → `a` displayed (standard 2→A)
 - Position 2: `8` → `t` displayed (standard 8→T)
@@ -83,14 +86,16 @@ The API provides intelligent matching for words with diacritics (accents and spe
 **Dictionary Format**: Each line contains: `NORMALIZED[TAB]original`
 
 **Examples:**
-```
-CAFE	café          # Matches phone input, displays as "café"
-AANGEERFD	aangeërfd  # Dutch word with diaeresis preserved
-RESUME	résumé        # Matches "RESUME", displays as "résumé"
+
+``` txt
+CAFE      café       # Matches phone input, displays as "café"
+AANGEERFD aangeërfd  # Dutch word with diaeresis preserved
+RESUME    résumé     # Matches "RESUME", displays as "résumé"
 ```
 
 **How it works:**
-1. User enters phone number: `2233` 
+
+1. User enters phone number: `2233`
 2. System generates combinations: `CAFE`, `BAED`, etc.
 3. System normalizes and checks dictionary: `CAFE` → found as `CAFE	café`
 4. System returns match with diacritics: "café"
@@ -105,22 +110,19 @@ This ensures maximum matching flexibility while preserving the cultural authenti
 
 ### Running the Application
 
-1. Navigate to the project directory:
-```powershell
-cd c:\Users\rsirre\Desktop\naamnummers\VanityNumberApi
-```
+1. Restore dependencies
 
-2. Restore dependencies:
 ```powershell
 dotnet restore
 ```
 
-3. Run the application:
+2. Run the application:
+
 ```powershell
 dotnet run
 ```
 
-4. Open your browser and navigate to:
+3. Open your browser and navigate to:
    - Swagger UI: `https://localhost:5001/swagger` or `http://localhost:5000/swagger`
 
 ## API Endpoints
@@ -130,7 +132,8 @@ dotnet run
 Convert a phone number with full control over parameters.
 
 **Request Body:**
-```json
+
+``` json
 {
   "phoneNumber": "0612345678",
   "dictionaryTypes": ["Dutch", "English", "Urban"],
@@ -140,7 +143,8 @@ Convert a phone number with full control over parameters.
 ```
 
 **Response:**
-```json
+
+``` json
 {
   "originalNumber": "0612345678",
   "matches": [
@@ -160,11 +164,13 @@ Convert a phone number with full control over parameters.
 Simple GET request to convert a phone number.
 
 **Example:**
-```
+
+``` bash
 GET /api/VanityNumber/convert/0612345678?dictionaries=Dutch,English&minWordLength=3&maxResults=20
 ```
 
 **Query Parameters:**
+
 - `dictionaries` (optional): Comma-separated list (Dutch,English,Urban). Default: all
 - `minWordLength` (optional): Minimum word length. Default: 3
 - `maxResults` (optional): Maximum results to return. Default: 20
@@ -187,6 +193,7 @@ Invoke-RestMethod -Uri "https://localhost:5001/api/VanityNumber/convert/06123456
 ### Example with Your Number
 
 For the Dutch number `0612345678`, the API will find words like:
+
 - `06BEI45678` (where BEI is position 2-4, using digits 234)
 - And other matches based on the dictionary words
 
@@ -197,11 +204,11 @@ The API uses three comprehensive dictionary files located in the `VanityNumberAp
 - **dutch.txt** - Official Dutch word list from OpenTaal (~400,000+ words)
   - Source: https://github.com/OpenTaal/opentaal-wordlist
   - Words filtered to 3-15 characters, converted to uppercase
-  
+
 - **english.txt** - Comprehensive English dictionary (~370,000+ words)
   - Source: https://github.com/dwyl/english-words
   - Words filtered to 3-15 characters, converted to uppercase
-  
+
 - **urban.txt** - Popular slang and internet culture terms (~170+ curated terms)
   - Includes modern slang, memes, and internet culture vocabulary
   - Manually curated for relevance
@@ -210,7 +217,7 @@ You can add more words to these files (one word per line, uppercase) and restart
 
 ## Project Structure
 
-```
+``` txt
 VanityNumberApi/
 ├── Controllers/
 │   └── VanityNumberController.cs

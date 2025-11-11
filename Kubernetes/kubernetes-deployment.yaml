@@ -16,8 +16,8 @@ spec:
         app: vanity-robertsirre-nl
     spec:
       containers:
-      - name: web
-        image: atreyu/naamnummer:0.0.1
+      - name: api
+        image: atreyu/naamnummer.api:0.0.1
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
