@@ -3,6 +3,8 @@ using VanityNumberApi.Core.Services;
 
 namespace VanityNumberApi.Tests;
 
+#pragma warning disable CS1591 // Missing XML comment : method should be self explanatory (for now)
+
 /// <summary>
 /// Tests for the DictionaryService that validates words against dictionaries.
 /// </summary>
@@ -29,8 +31,8 @@ public class DictionaryServiceTests
     [Fact]
     [Trait("Category", "Unit")]
     [Trait("Component", "DictionaryService")]
-    public void FindWords_WithCandidates_ShouldReturnOnlyValidWords()
-    {
+	public void FindWords_WithCandidates_ShouldReturnOnlyValidWords()
+	{
         // Arrange
         var service = new DictionaryService();
         var candidates = new[] { "AAA", "BBB", "CCC", "DDD", "XYZQWERTY123" };

@@ -2,6 +2,9 @@ using VanityNumberApi.Core.Services;
 
 namespace VanityNumberApi.Tests;
 
+
+#pragma warning disable CS1591 // Missing XML comment : method should be self explanatory (for now)
+
 /// <summary>
 /// Tests for the PhoneToLetterMapper service that converts phone digits to letters.
 /// </summary>

@@ -5,10 +5,11 @@ using VanityNumberApi.Controllers;
 using VanityNumberApi.Core.Models;
 using VanityNumberApi.Core.Services;
 using VanityNumberApi.Models;
-using Xunit;
 
 namespace VanityNumberApi.Tests;
 
+
+#pragma warning disable CS1591 // Missing XML comment : method should be self explanatory (for now)
 public class VanityNumberControllerTests
 {
     private readonly Mock<IVanityNumberService> _mockVanityService;
