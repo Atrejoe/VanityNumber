@@ -64,6 +64,7 @@ public class VanityNumberService : IVanityNumberService
         var dictionaryTypes = request.DictionaryTypes;
         var minWordLength = request.MinWordLength ?? 3;
         var maxResults = request.MaxResults ?? 20;
+        var useLeetSpeak = request.UseLeetSpeak;
 
         // Find vanity matches
         var matches = new List<VanityMatch>();
@@ -74,7 +75,7 @@ public class VanityNumberService : IVanityNumberService
             for (int length = minWordLength; length <= cleanNumber.Length - start && length <= 10; length++)
             {
                 var segment = cleanNumber.Substring(start, length);
-                var combinations = _letterMapper.GenerateLetterCombinationsWithTracking(segment);
+                var combinations = _letterMapper.GenerateLetterCombinationsWithTracking(segment, useLeetSpeak);
 
                 foreach (var combo in combinations)
                 {

@@ -37,6 +37,12 @@ public class VanityNumberRequest
     /// </summary>
     [Range(1, 100, ErrorMessage = "Maximum results must be between 1 and 100")]
     public int? MaxResults { get; set; } = 20;
+    
+    /// <summary>
+    /// Gets or sets whether to use leet speak mappings (0=O, 1=I/L, 4=A, 5=S, 7=T, 8=B).
+    /// Defaults to false for standard T9 mappings only.
+    /// </summary>
+    public bool UseLeetSpeak { get; set; } = false;
 }
 
 /// <summary>

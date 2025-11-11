@@ -14,6 +14,7 @@ public class VanityNumberControllerTests
 {
     private readonly Mock<IVanityNumberService> _mockVanityService;
     private readonly Mock<IDictionaryService> _mockDictionaryService;
+    private readonly Mock<IPhoneToLetterMapper> _mockLetterMapper;
     private readonly Mock<ILogger<VanityNumberController>> _mockLogger;
     private readonly VanityNumberController _controller;
 
@@ -21,10 +22,12 @@ public class VanityNumberControllerTests
     {
         _mockVanityService = new Mock<IVanityNumberService>();
         _mockDictionaryService = new Mock<IDictionaryService>();
+        _mockLetterMapper = new Mock<IPhoneToLetterMapper>();
         _mockLogger = new Mock<ILogger<VanityNumberController>>();
         _controller = new VanityNumberController(
             _mockVanityService.Object,
             _mockDictionaryService.Object,
+            _mockLetterMapper.Object,
             _mockLogger.Object);
     }
 
@@ -95,5 +98,32 @@ public class VanityNumberControllerTests
         // Assert
         var statusResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(500, statusResult.StatusCode);
+    }
+    
+    [Fact]
+    public void ConvertVanityToDigits_ShouldReturnDigits()
+    {
+        // Arrange
+        var vanityNumber = "8atm4n";
+        var expectedDigits = "828646";
+        _mockLetterMapper.Setup(x => x.ConvertVanityToDigits(vanityNumber)).Returns(expectedDigits);
+
+        // Act
+        var result = _controller.ConvertVanityToDigits(vanityNumber);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var digits = Assert.IsType<string>(okResult.Value);
+        Assert.Equal(expectedDigits, digits);
+    }
+    
+    [Fact]
+    public void ConvertVanityToDigits_WithEmptyString_ShouldReturnBadRequest()
+    {
+        // Act
+        var result = _controller.ConvertVanityToDigits("");
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result.Result);
     }
 }

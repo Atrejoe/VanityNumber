@@ -48,33 +48,57 @@ public interface IPhoneToLetterMapper
     /// Gets the letters associated with a specific digit on the phone keypad.
     /// </summary>
     /// <param name="digit">The digit character (0-9).</param>
+    /// <param name="useLeetSpeak">Whether to include leet speak mappings (default: false).</param>
     /// <returns>An array containing the letters for the digit, or empty if not found.</returns>
-    char[][] GetLettersForDigit(char digit);
+    char[][] GetLettersForDigit(char digit, bool useLeetSpeak = false);
     
     /// <summary>
     /// Generates all possible letter combinations for a sequence of digits.
     /// </summary>
     /// <param name="digits">The string of digits to convert.</param>
+    /// <param name="useLeetSpeak">Whether to include leet speak mappings (default: false).</param>
     /// <returns>An array of all possible letter combinations.</returns>
-    string[] GenerateLetterCombinations(string digits);
+    string[] GenerateLetterCombinations(string digits, bool useLeetSpeak = false);
     
     /// <summary>
     /// Generates all possible letter combinations with leet speak tracking.
     /// </summary>
     /// <param name="digits">The string of digits to convert.</param>
+    /// <param name="useLeetSpeak">Whether to include leet speak mappings (default: false).</param>
     /// <returns>An array of letter combinations with leet speak position tracking.</returns>
-    LetterCombination[] GenerateLetterCombinationsWithTracking(string digits);
+    LetterCombination[] GenerateLetterCombinationsWithTracking(string digits, bool useLeetSpeak = false);
+    
+    /// <summary>
+    /// Converts a vanity display string back to its original digits.
+    /// Handles both lowercase letters and digits (from leet speak).
+    /// </summary>
+    /// <param name="vanityDisplay">The vanity display string (e.g., "8atm4n" or "cool").</param>
+    /// <returns>The original digit sequence.</returns>
+    string ConvertVanityToDigits(string vanityDisplay);
 }
 
 /// <summary>
 /// Maps phone digits to letters using the standard T9 telephone keypad layout.
-/// Supports leet speak mappings: 0=O, 1=I/L, 3=E, 4=A, 5=S, 7=T, 8=B.
+/// Supports optional leet speak mappings: 0=O, 1=I/L, 3=E, 4=A, 5=S, 7=T, 8=B.
 /// </summary>
 public class PhoneToLetterMapper : IPhoneToLetterMapper
 {
+    // Standard T9 phone keypad mapping (without leet speak)
+    private readonly Dictionary<char, char[]> _standardDigitToLetters = new()
+    {
+        { '2', new[] { 'A', 'B', 'C' } },                 // Standard T9
+        { '3', new[] { 'D', 'E', 'F' } },                 // Standard T9
+        { '4', new[] { 'G', 'H', 'I' } },                 // Standard T9
+        { '5', new[] { 'J', 'K', 'L' } },                 // Standard T9
+        { '6', new[] { 'M', 'N', 'O' } },                 // Standard T9
+        { '7', new[] { 'P', 'Q', 'R', 'S' } },            // Standard T9
+        { '8', new[] { 'T', 'U', 'V' } },                 // Standard T9
+        { '9', new[] { 'W', 'X', 'Y', 'Z' } }             // Standard T9
+    };
+
     // Enhanced phone keypad mapping with leet speak support
     // Standard T9 + leet speak alternatives: 0=O, 1=I/L, 3=E, 4=A, 5=S, 7=T, 8=B
-    private readonly Dictionary<char, char[]> _digitToLetters = new()
+    private readonly Dictionary<char, char[]> _digitToLettersWithLeet = new()
     {
         { '0', new[] { 'O' } },                           // Leet: 0 = O
         { '1', new[] { 'I', 'L' } },                      // Leet: 1 = I or L
@@ -102,11 +126,26 @@ public class PhoneToLetterMapper : IPhoneToLetterMapper
         { '8', new HashSet<char> { 'B' } },               // 8 = B (leet)
         { '9', new HashSet<char>() }                      // No leet speak
     };
+    
+    // Letter to digit mapping for reverse conversion
+    private readonly Dictionary<char, char> _letterToDigit = new()
+    {
+        {'a', '2'}, {'b', '2'}, {'c', '2'},
+        {'d', '3'}, {'e', '3'}, {'f', '3'},
+        {'g', '4'}, {'h', '4'}, {'i', '4'},
+        {'j', '5'}, {'k', '5'}, {'l', '5'},
+        {'m', '6'}, {'n', '6'}, {'o', '6'},
+        {'p', '7'}, {'q', '7'}, {'r', '7'}, {'s', '7'},
+        {'t', '8'}, {'u', '8'}, {'v', '8'},
+        {'w', '9'}, {'x', '9'}, {'y', '9'}, {'z', '9'}
+    };
 
     /// <inheritdoc />
-    public char[][] GetLettersForDigit(char digit)
+    public char[][] GetLettersForDigit(char digit, bool useLeetSpeak = false)
     {
-        if (_digitToLetters.TryGetValue(digit, out var letters))
+        var mapping = useLeetSpeak ? _digitToLettersWithLeet : _standardDigitToLetters;
+        
+        if (mapping.TryGetValue(digit, out var letters))
         {
             return new[] { letters };
         }
@@ -114,25 +153,36 @@ public class PhoneToLetterMapper : IPhoneToLetterMapper
     }
 
     /// <inheritdoc />
-    public string[] GenerateLetterCombinations(string digits)
+    public string[] GenerateLetterCombinations(string digits, bool useLeetSpeak = false)
     {
         if (string.IsNullOrEmpty(digits))
             return Array.Empty<string>();
 
         var result = new List<string>();
-        GenerateCombinationsRecursive(digits, 0, "", result);
+        GenerateCombinationsRecursive(digits, 0, "", result, useLeetSpeak);
         return result.ToArray();
     }
     
     /// <inheritdoc />
-    public LetterCombination[] GenerateLetterCombinationsWithTracking(string digits)
+    public LetterCombination[] GenerateLetterCombinationsWithTracking(string digits, bool useLeetSpeak = false)
     {
         if (string.IsNullOrEmpty(digits))
             return Array.Empty<LetterCombination>();
 
         var result = new List<LetterCombination>();
-        GenerateCombinationsWithTrackingRecursive(digits, 0, "", new bool[digits.Length], result);
+        GenerateCombinationsWithTrackingRecursive(digits, 0, "", new bool[digits.Length], result, useLeetSpeak);
         return result.ToArray();
+    }
+    
+    /// <inheritdoc />
+    public string ConvertVanityToDigits(string vanityDisplay)
+    {
+        if (string.IsNullOrEmpty(vanityDisplay))
+            return string.Empty;
+            
+        return new string(vanityDisplay.Select(c => 
+            char.IsDigit(c) ? c : _letterToDigit[char.ToLowerInvariant(c)]
+        ).ToArray());
     }
 
     /// <summary>
@@ -143,12 +193,14 @@ public class PhoneToLetterMapper : IPhoneToLetterMapper
     /// <param name="current">Current combination being built.</param>
     /// <param name="leetFlags">Boolean array tracking leet speak usage.</param>
     /// <param name="result">List to store all generated combinations.</param>
+    /// <param name="useLeetSpeak">Whether to include leet speak mappings.</param>
     private void GenerateCombinationsWithTrackingRecursive(
         string digits, 
         int index, 
         string current, 
         bool[] leetFlags,
-        List<LetterCombination> result)
+        List<LetterCombination> result,
+        bool useLeetSpeak)
     {
         if (index == digits.Length)
         {
@@ -162,13 +214,16 @@ public class PhoneToLetterMapper : IPhoneToLetterMapper
         }
 
         char digit = digits[index];
-        if (_digitToLetters.TryGetValue(digit, out var letters))
+        var mapping = useLeetSpeak ? _digitToLettersWithLeet : _standardDigitToLetters;
+        
+        if (mapping.TryGetValue(digit, out var letters))
         {
             foreach (var letter in letters)
             {
                 // Check if this letter is a leet speak mapping for this digit
-                bool isLeet = _leetSpeakLetters.TryGetValue(digit, out var leetSet) 
-                              && leetSet.Contains(letter);
+                bool isLeet = useLeetSpeak && 
+                              _leetSpeakLetters.TryGetValue(digit, out var leetSet) && 
+                              leetSet.Contains(letter);
                 
                 var newLeetFlags = (bool[])leetFlags.Clone();
                 newLeetFlags[index] = isLeet;
@@ -178,7 +233,8 @@ public class PhoneToLetterMapper : IPhoneToLetterMapper
                     index + 1, 
                     current + letter, 
                     newLeetFlags,
-                    result);
+                    result,
+                    useLeetSpeak);
             }
         }
         else
@@ -192,7 +248,8 @@ public class PhoneToLetterMapper : IPhoneToLetterMapper
                 index + 1, 
                 current + digit, 
                 newLeetFlags,
-                result);
+                result,
+                useLeetSpeak);
         }
     }
 
@@ -203,7 +260,8 @@ public class PhoneToLetterMapper : IPhoneToLetterMapper
     /// <param name="index">Current position in the digits string.</param>
     /// <param name="current">Current combination being built.</param>
     /// <param name="result">List to store all generated combinations.</param>
-    private void GenerateCombinationsRecursive(string digits, int index, string current, List<string> result)
+    /// <param name="useLeetSpeak">Whether to include leet speak mappings.</param>
+    private void GenerateCombinationsRecursive(string digits, int index, string current, List<string> result, bool useLeetSpeak)
     {
         if (index == digits.Length)
         {
@@ -211,17 +269,19 @@ public class PhoneToLetterMapper : IPhoneToLetterMapper
             return;
         }
 
-        if (_digitToLetters.TryGetValue(digits[index], out var letters))
+        var mapping = useLeetSpeak ? _digitToLettersWithLeet : _standardDigitToLetters;
+        
+        if (mapping.TryGetValue(digits[index], out var letters))
         {
             foreach (var letter in letters)
             {
-                GenerateCombinationsRecursive(digits, index + 1, current + letter, result);
+                GenerateCombinationsRecursive(digits, index + 1, current + letter, result, useLeetSpeak);
             }
         }
         else
         {
             // If digit not found, just add the digit itself
-            GenerateCombinationsRecursive(digits, index + 1, current + digits[index], result);
+            GenerateCombinationsRecursive(digits, index + 1, current + digits[index], result, useLeetSpeak);
         }
     }
 }
