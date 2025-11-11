@@ -3,6 +3,17 @@ using VanityNumberApi.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add CORS policy for Blazor WebAssembly app
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorApp", policy =>
+    {
+        policy.WithOrigins("https://localhost:5001", "http://localhost:5000", "https://localhost:7002", "http://localhost:5002", "https://localhost:7155")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -34,6 +45,9 @@ builder.Services.AddSingleton<IDictionaryService, DictionaryService>();
 builder.Services.AddSingleton<IVanityNumberService, VanityNumberService>();
 
 var app = builder.Build();
+
+// Configure CORS
+app.UseCors("AllowBlazorApp");
 
 // Configure NSwag UI at root
 app.UseOpenApi();

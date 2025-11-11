@@ -92,3 +92,29 @@ public class VanityMatch
     /// </summary>
     public int Length { get; set; }
 }
+
+/// <summary>
+/// Information about a dictionary.
+/// </summary>
+public class DictionaryInfo
+{
+    /// <summary>
+    /// Gets or sets the dictionary name.
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the dictionary value (enum int value).
+    /// </summary>
+    public int Value { get; set; }
+
+    /// <summary>
+    /// Gets or sets the dictionary description.
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the word count in this dictionary.
+    /// </summary>
+    public int WordCount { get; set; }
+}

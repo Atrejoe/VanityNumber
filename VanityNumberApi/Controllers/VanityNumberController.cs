@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using VanityNumberApi.Core.Models;
 using VanityNumberApi.Core.Services;
-using VanityNumberApi.Models;
 
 namespace VanityNumberApi.Controllers;
 
@@ -85,6 +84,7 @@ public class VanityNumberController : ControllerBase
     /// <remarks>
     /// Sample request:
     /// 
+    ///     GET /api/VanityNumber/convert/0612345678?dictionaries=Dutch|English&amp;maxResults=5
     ///     GET /api/VanityNumber/convert/0612345678?dictionaries=Dutch|English&amp;maxResults=5&amp;useLeetSpeak=true
     ///     
     /// Dictionary types can be specified as:

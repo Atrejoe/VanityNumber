@@ -4,7 +4,6 @@ using Moq;
 using VanityNumberApi.Controllers;
 using VanityNumberApi.Core.Models;
 using VanityNumberApi.Core.Services;
-using VanityNumberApi.Models;
 
 namespace VanityNumberApi.Tests;
 
