@@ -1,6 +1,5 @@
 using VanityNumberApi.Core.Models;
 using VanityNumberApi.Core.Services;
-using Xunit;
 
 namespace VanityNumberApi.Tests;
 

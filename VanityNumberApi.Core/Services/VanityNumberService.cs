@@ -74,29 +74,34 @@ public class VanityNumberService : IVanityNumberService
             for (int length = minWordLength; length <= cleanNumber.Length - start && length <= 10; length++)
             {
                 var segment = cleanNumber.Substring(start, length);
-                var combinations = _letterMapper.GenerateLetterCombinations(segment);
+                var combinations = _letterMapper.GenerateLetterCombinationsWithTracking(segment);
 
-                var foundWords = _dictionaryService.FindWords(combinations, dictionaryTypes);
-                
-                foreach (var word in foundWords)
+                foreach (var combo in combinations)
                 {
-                    // Determine which dictionary(ies) contain this word
-                    var matchedDictionaries = GetMatchedDictionaries(word, dictionaryTypes);
+                    var foundWords = _dictionaryService.FindWords(new[] { combo.Letters }, dictionaryTypes);
                     
-                    var vanityNumber = BuildVanityNumber(cleanNumber, start, length, word);
-                    
-                    matches.Add(new VanityMatch
+                    foreach (var word in foundWords)
                     {
-                        VanityNumber = vanityNumber,
-                        Word = word,
-                        DictionaryType = matchedDictionaries,
-                        StartPosition = start,
-                        Length = length
-                    });
+                        // Determine which dictionary(ies) contain this word
+                        var matchedDictionaries = GetMatchedDictionaries(word, dictionaryTypes);
+                        
+                        // Build vanity number using leet speak tracking
+                        var vanityDisplay = combo.ToVanityDisplay();
+                        var vanityNumber = BuildVanityNumberWithTracking(cleanNumber, start, length, vanityDisplay);
+                        
+                        matches.Add(new VanityMatch
+                        {
+                            VanityNumber = vanityNumber,
+                            Word = word,
+                            DictionaryType = matchedDictionaries,
+                            StartPosition = start,
+                            Length = length
+                        });
 
-                    if (matches.Count >= maxResults * 3) // Get more than needed, we'll filter later
-                    {
-                        break;
+                        if (matches.Count >= maxResults * 3) // Get more than needed, we'll filter later
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -113,16 +118,17 @@ public class VanityNumberService : IVanityNumberService
     }
 
     /// <summary>
-    /// Builds a vanity number string by replacing a segment of digits with a word.
+    /// Builds a vanity number string by replacing a segment of digits with a vanity display.
+    /// The vanity display already has leet speak tracking applied (digits where leet was used).
     /// </summary>
     /// <param name="phoneNumber">The original phone number.</param>
     /// <param name="start">The starting position of the segment to replace.</param>
     /// <param name="length">The length of the segment to replace.</param>
-    /// <param name="word">The word to insert.</param>
-    /// <returns>The vanity number with the word replacing the digit segment.</returns>
-    private static string BuildVanityNumber(string phoneNumber, int start, int length, string word)
+    /// <param name="vanityDisplay">The vanity display string (e.g., "8atm4n").</param>
+    /// <returns>The vanity number with the vanity display replacing the digit segment.</returns>
+    private static string BuildVanityNumberWithTracking(string phoneNumber, int start, int length, string vanityDisplay)
     {
-        // Build the vanity number with the word replacing the digits
+        // Build the vanity number with the vanity display replacing the digits
         var result = new System.Text.StringBuilder();
         
         int index = 0;
@@ -130,7 +136,7 @@ public class VanityNumberService : IVanityNumberService
         {
             if (index == start)
             {
-                result.Append(word);
+                result.Append(vanityDisplay);
                 index += length; // Skip the digits that were replaced
             }
             else

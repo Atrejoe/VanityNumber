@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VanityNumberApi.Core.Models;
 using VanityNumberApi.Core.Services;
+using VanityNumberApi.Models;
 
 namespace VanityNumberApi.Controllers;
 
@@ -10,21 +11,27 @@ namespace VanityNumberApi.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+#pragma warning disable S6960 // Controller actions are related to vanity number operations
 public class VanityNumberController : ControllerBase
+#pragma warning restore S6960
 {
     private readonly IVanityNumberService _vanityNumberService;
+    private readonly IDictionaryService _dictionaryService;
     private readonly ILogger<VanityNumberController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="VanityNumberController"/> class.
     /// </summary>
     /// <param name="vanityNumberService">The vanity number generation service.</param>
+    /// <param name="dictionaryService">The dictionary service.</param>
     /// <param name="logger">The logger instance.</param>
     public VanityNumberController(
         IVanityNumberService vanityNumberService,
+        IDictionaryService dictionaryService,
         ILogger<VanityNumberController> logger)
     {
         _vanityNumberService = vanityNumberService;
+        _dictionaryService = dictionaryService;
         _logger = logger;
     }
 
@@ -133,6 +140,64 @@ public class VanityNumberController : ControllerBase
         {
             _logger.LogError(ex, "Error converting phone number to vanity number");
             return StatusCode(500, "An error occurred while processing your request");
+        }
+    }
+
+    /// <summary>
+    /// Get a list of available dictionaries
+    /// </summary>
+    /// <returns>List of available dictionaries with word counts</returns>
+    /// <response code="200">Successfully retrieved dictionary list</response>
+    /// <response code="500">Internal server error</response>
+    /// <remarks>
+    /// Sample request:
+    /// 
+    ///     GET /api/VanityNumber/dictionaries
+    ///     
+    /// Returns information about each available dictionary including:
+    /// - Name: The dictionary name (Dutch, English, Urban)
+    /// - Value: The numeric value for the dictionary type
+    /// - Description: What the dictionary contains
+    /// - WordCount: Approximate number of words in the dictionary
+    /// </remarks>
+    [HttpGet("dictionaries")]
+    [ProducesResponseType(typeof(IEnumerable<DictionaryInfo>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public ActionResult<IEnumerable<DictionaryInfo>> GetDictionaries()
+    {
+        try
+        {
+            var dictionaries = new[]
+            {
+                new DictionaryInfo
+                {
+                    Name = "Dutch",
+                    Value = (int)DictionaryType.Dutch,
+                    Description = "Dutch language dictionary",
+                    WordCount = _dictionaryService.GetWordCount(DictionaryType.Dutch)
+                },
+                new DictionaryInfo
+                {
+                    Name = "English",
+                    Value = (int)DictionaryType.English,
+                    Description = "English language dictionary",
+                    WordCount = _dictionaryService.GetWordCount(DictionaryType.English)
+                },
+                new DictionaryInfo
+                {
+                    Name = "Urban",
+                    Value = (int)DictionaryType.Urban,
+                    Description = "Urban slang dictionary",
+                    WordCount = _dictionaryService.GetWordCount(DictionaryType.Urban)
+                }
+            };
+
+            return Ok(dictionaries);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving dictionary list");
+            return StatusCode(500, "An error occurred while retrieving the dictionary list");
         }
     }
 }

@@ -1,6 +1,5 @@
 using VanityNumberApi.Core.Models;
 using VanityNumberApi.Core.Services;
-using Xunit;
 
 namespace VanityNumberApi.Tests;
 
@@ -9,35 +8,22 @@ namespace VanityNumberApi.Tests;
 /// </summary>
 public class DictionaryServiceTests
 {
-    [Fact]
+    [Theory]
     [Trait("Category", "Unit")]
     [Trait("Component", "DictionaryService")]
-    public void IsWord_WithValidDutchWord_ShouldReturnTrue()
+    [InlineData("XYZQWERTY", DictionaryType.Dutch)]
+    [InlineData("XYZQWERTY", DictionaryType.English)]
+    [InlineData("XYZQWERTY", DictionaryType.Urban)]
+    public void IsWord_WithInvalidWord_ShouldReturnFalse(string word, DictionaryType dictionaryType)
     {
         // Arrange
         var service = new DictionaryService();
 
-        // Act - using common Dutch words that should be in most dictionaries
-        var result = service.IsWord("HUIS", DictionaryType.Dutch);
-
-        // Note: Result depends on actual dictionary content
-        // This test validates the service is working, not specific dictionary content
-        Assert.IsType<bool>(result); // Service should return a boolean
-    }
-
-    [Fact]
-    [Trait("Category", "Unit")]
-    [Trait("Component", "DictionaryService")]
-    public void IsWord_WithInvalidWord_ShouldReturnFalse()
-    {
-        // Arrange
-        var service = new DictionaryService();
-
-        // Act - using nonsense word
-        var result = service.IsWord("XYZQWERTY", DictionaryType.Dutch);
+        // Act
+        var result = service.IsWord(word, dictionaryType);
 
         // Assert
-        Assert.False(result);
+        Assert.False(result, $"Expected nonsense word '{word}' to not be found in {dictionaryType} dictionary");
     }
 
     [Fact]
@@ -111,23 +97,21 @@ public class DictionaryServiceTests
         // Should be able to search across multiple dictionaries
     }
 
-    [Fact]
+    [Theory]
     [Trait("Category", "Unit")]
     [Trait("Component", "DictionaryService")]
-    public void Constructor_WithEmbeddedResources_ShouldLoadAllDictionaries()
+    [InlineData(DictionaryType.Dutch, "EN")]      // "and" in Dutch
+    [InlineData(DictionaryType.English, "THE")]
+    [InlineData(DictionaryType.Urban, "COOL")]
+    public void Constructor_WithEmbeddedResources_ShouldLoadDictionary(DictionaryType dictionaryType, string testWord)
     {
         // Arrange & Act
         var service = new DictionaryService();
 
-        // Assert - Verify all dictionaries loaded by checking they can find common words
-        // These words should exist in their respective dictionaries
-        var hasDutchWords = service.IsWord("EN", DictionaryType.Dutch); // "and" in Dutch
-        var hasEnglishWords = service.IsWord("THE", DictionaryType.English);
-        var hasUrbanWords = service.IsWord("COOL", DictionaryType.Urban);
-
-        // At least verify the service doesn't crash and returns boolean results
-        Assert.IsType<bool>(hasDutchWords);
-        Assert.IsType<bool>(hasEnglishWords);
-        Assert.IsType<bool>(hasUrbanWords);
+        // Assert - Verify dictionary loaded by checking it can find a common word
+        var result = service.IsWord(testWord, dictionaryType);
+        
+        // At least verify the service doesn't crash and returns a boolean result
+        Assert.IsType<bool>(result);
     }
 }

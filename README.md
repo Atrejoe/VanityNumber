@@ -15,6 +15,9 @@ A .NET 10 Web API that converts phone numbers into vanity numbers using multiple
 
 ## Phone Keypad Mapping
 
+The API uses standard T9 phone keypad mapping with **enhanced leet speak support**:
+
+### Standard T9 Mapping
 ```
 ┌─────────┬─────────┬─────────┐
 │    1    │    2    │    3    │
@@ -27,9 +30,72 @@ A .NET 10 Web API that converts phone numbers into vanity numbers using multiple
 │   PQRS  │   TUV   │   WXYZ  │
 ├─────────┼─────────┼─────────┤
 │    *    │    0    │    #    │
-│         │         │         │
+│         │    O    │         │
 └─────────┴─────────┴─────────┘
 ```
+
+### Leet Speak Enhancement
+
+The API includes leet speak mappings to increase matching possibilities:
+
+| Digit | Standard Letters | Leet Speak Alternative | Combined Mapping |
+|-------|-----------------|------------------------|------------------|
+| 0     | -               | O                      | O                |
+| 1     | -               | I, L                   | I, L             |
+| 2     | ABC             | -                      | ABC              |
+| 3     | DEF             | E (included)           | DEF              |
+| 4     | GHI             | A                      | GHIA             |
+| 5     | JKL             | S                      | JKLS             |
+| 6     | MNO             | -                      | MNO              |
+| 7     | PQRS            | T (included)           | PQRST            |
+| 8     | TUV             | B                      | TUVB             |
+| 9     | WXYZ            | -                      | WXYZ             |
+
+**Example:** The phone number `828626` can match the word "BATMAN":
+- Position 0: `8` → **B** (leet speak)
+- Position 1: `2` → **A** (standard)
+- Position 2: `8` → **T** (standard)
+- Position 3: `6` → **M** (standard)
+- Position 4: `2` → **A** (standard)
+- Position 5: `6` → **N** (standard)
+
+**Important:** Leet speak mappings only apply to the **original digits** in the phone number. For example, the digit `4` can map to the letter `A` (leet), but the letter `A` will only appear in positions where the phone number has a `4`, not where it has other digits like `2`.
+
+**Vanity Display Format**: When displaying matches, digits where leet speak was used are shown as the original digit, while standard mappings are shown as lowercase letters. This ensures that converting the vanity display back to a phone number preserves the original number.
+
+**Example:** The phone number `828646` can match "batman":
+- Position 0: `8` → `8` displayed (used leet 8→B)
+- Position 1: `2` → `a` displayed (standard 2→A)
+- Position 2: `8` → `t` displayed (standard 8→T)
+- Position 3: `6` → `m` displayed (standard 6→M)
+- Position 4: `4` → `4` displayed (used leet 4→A)
+- Position 5: `6` → `n` displayed (standard 6→N)
+
+**Result:** `8atm4n` - Converting back: `828646` (preserves original number)
+
+### Diacritic Matching
+
+The API provides intelligent matching for words with diacritics (accents and special characters):
+
+- **Matching**: Words are matched using **normalized** (without diacritics) forms for flexibility
+- **Display**: Matched words are displayed in their **original** form with diacritics preserved
+
+**Dictionary Format**: Each line contains: `NORMALIZED[TAB]original`
+
+**Examples:**
+```
+CAFE	café          # Matches phone input, displays as "café"
+AANGEERFD	aangeërfd  # Dutch word with diaeresis preserved
+RESUME	résumé        # Matches "RESUME", displays as "résumé"
+```
+
+**How it works:**
+1. User enters phone number: `2233` 
+2. System generates combinations: `CAFE`, `BAED`, etc.
+3. System normalizes and checks dictionary: `CAFE` → found as `CAFE	café`
+4. System returns match with diacritics: "café"
+
+This ensures maximum matching flexibility while preserving the cultural authenticity of words from different languages, particularly important for Dutch words with diaereses (ë, ï, ö, etc.).
 
 ## Getting Started
 

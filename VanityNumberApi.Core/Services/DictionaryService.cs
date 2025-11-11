@@ -23,6 +23,13 @@ public interface IDictionaryService
     /// <param name="dictionaryTypes">The dictionary type(s) to search. Can be combined using bitwise OR.</param>
     /// <returns>An enumerable of words that were found in the dictionaries.</returns>
     IEnumerable<string> FindWords(IEnumerable<string> candidates, DictionaryType dictionaryTypes);
+
+    /// <summary>
+    /// Gets the number of words in a specific dictionary.
+    /// </summary>
+    /// <param name="dictionaryType">The dictionary type (must be a single value, not combined).</param>
+    /// <returns>The number of words in the specified dictionary, or 0 if the type is None or All.</returns>
+    int GetWordCount(DictionaryType dictionaryType);
 }
 
 /// <summary>
@@ -30,9 +37,10 @@ public interface IDictionaryService
 /// </summary>
 public class DictionaryService : IDictionaryService
 {
-    private readonly HashSet<string> _dutchWords;
-    private readonly HashSet<string> _englishWords;
-    private readonly HashSet<string> _urbanWords;
+    // Maps normalized word -> original word (with diacritics)
+    private readonly Dictionary<string, string> _dutchWords;
+    private readonly Dictionary<string, string> _englishWords;
+    private readonly Dictionary<string, string> _urbanWords;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DictionaryService"/> class.
@@ -48,13 +56,14 @@ public class DictionaryService : IDictionaryService
 
     /// <summary>
     /// Loads a dictionary from an embedded resource.
+    /// Format: Each line is "NORMALIZED[tab]ORIGINAL" where ORIGINAL preserves diacritics.
     /// </summary>
     /// <param name="resourceName">Fully qualified name of the embedded resource.</param>
-    /// <returns>A hash set containing all words from the dictionary.</returns>
+    /// <returns>A dictionary mapping normalized words to their original forms.</returns>
     /// <exception cref="FileNotFoundException">Thrown when the dictionary resource is not found.</exception>
-    private static HashSet<string> LoadDictionary(string resourceName)
+    private static Dictionary<string, string> LoadDictionary(string resourceName)
     {
-        var words = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var words = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var assembly = Assembly.GetExecutingAssembly();
 
         using var stream = assembly.GetManifestResourceStream(resourceName)
@@ -69,7 +78,12 @@ public class DictionaryService : IDictionaryService
                 var trimmed = line.Trim();
                 if (!string.IsNullOrWhiteSpace(trimmed))
                 {
-                    words.Add(trimmed.ToUpperInvariant());
+                    // Parse format: NORMALIZED[tab]ORIGINAL
+                    var parts = trimmed.Split('\t');
+                    var normalized = parts[0].ToUpperInvariant();
+                    var original = parts.Length > 1 ? parts[1] : parts[0];
+                    
+                    words[normalized] = original;
                 }
             }
         }
@@ -85,11 +99,11 @@ public class DictionaryService : IDictionaryService
 
         var upperWord = word.ToUpperInvariant();
 
-        if (dictionaryType.HasFlag(DictionaryType.Dutch) && _dutchWords.Contains(upperWord))
+        if (dictionaryType.HasFlag(DictionaryType.Dutch) && _dutchWords.ContainsKey(upperWord))
             return true;
-        if (dictionaryType.HasFlag(DictionaryType.English) && _englishWords.Contains(upperWord))
+        if (dictionaryType.HasFlag(DictionaryType.English) && _englishWords.ContainsKey(upperWord))
             return true;
-        if (dictionaryType.HasFlag(DictionaryType.Urban) && _urbanWords.Contains(upperWord))
+        if (dictionaryType.HasFlag(DictionaryType.Urban) && _urbanWords.ContainsKey(upperWord))
             return true;
 
         return false;
@@ -101,6 +115,37 @@ public class DictionaryService : IDictionaryService
         if (dictionaryTypes == DictionaryType.None)
             return Enumerable.Empty<string>();
 
-        return candidates.Where(c => IsWord(c, dictionaryTypes));
+        var results = new List<string>();
+        
+        foreach (var candidate in candidates)
+        {
+            var upperWord = candidate.ToUpperInvariant();
+            string? originalForm = null;
+            
+            // Try to find original form from dictionaries in order of preference
+            if (dictionaryTypes.HasFlag(DictionaryType.Dutch) && _dutchWords.TryGetValue(upperWord, out var dutchOriginal))
+                originalForm = dutchOriginal;
+            else if (dictionaryTypes.HasFlag(DictionaryType.English) && _englishWords.TryGetValue(upperWord, out var englishOriginal))
+                originalForm = englishOriginal;
+            else if (dictionaryTypes.HasFlag(DictionaryType.Urban) && _urbanWords.TryGetValue(upperWord, out var urbanOriginal))
+                originalForm = urbanOriginal;
+            
+            if (originalForm != null)
+                results.Add(originalForm);
+        }
+        
+        return results;
+    }
+
+    /// <inheritdoc />
+    public int GetWordCount(DictionaryType dictionaryType)
+    {
+        return dictionaryType switch
+        {
+            DictionaryType.Dutch => _dutchWords.Count,
+            DictionaryType.English => _englishWords.Count,
+            DictionaryType.Urban => _urbanWords.Count,
+            _ => 0
+        };
     }
 }
