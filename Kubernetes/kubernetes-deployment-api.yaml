@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vanity-robertsirre-nl-api
+  namespace: vanity-robertsirre-nl
+  labels:
+    app: vanity-robertsirre-nl
+    component: api
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: vanity-robertsirre-nl
+      component: api
+  template:
+    metadata:
+      labels:
+        app: vanity-robertsirre-nl
+        component: api
+    spec:
+      containers:
+      - name: api
+        image: atreyu/vanitynumber.api:0.1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        envFrom:
+        - configMapRef:
+            name: vanity-config
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+            - ALL
+        livenessProbe:
+          httpGet:
+            path: /swagger/v1/swagger.json
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /swagger/v1/swagger.json
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: vanity-robertsirre-nl
+                  component: api
+              topologyKey: kubernetes.io/hostname

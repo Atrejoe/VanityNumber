@@ -1,17 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: vanity-robertsirre-nl
+  name: vanity-robertsirre-nl-api
   namespace: vanity-robertsirre-nl
   labels:
     app: vanity-robertsirre-nl
+    component: api
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
-  - port: 80
+  - port: 8080
     targetPort: 8080
     protocol: TCP
     name: http
   selector:
     app: vanity-robertsirre-nl
-    component: gateway
+    component: api

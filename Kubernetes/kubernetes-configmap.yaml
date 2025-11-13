@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vanity-config
+  namespace: vanity-robertsirre-nl
+  labels:
+    app: vanity-robertsirre-nl
+data:
+  # API Configuration
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_URLS: "http://0.0.0.0:8080"
+
+  # CORS Origins - comma-separated list
+  # When using gateway, only the gateway origin is needed
+  CORS_ORIGINS: "https://vanity.robertsirre.nl,http://vanity.robertsirre.nl"
+
+  # Frontend Configuration
+  # Using gateway: Point to relative /api path (same origin)
+  API_BASE_URL: "/"

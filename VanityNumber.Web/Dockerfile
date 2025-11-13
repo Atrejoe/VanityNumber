@@ -32,6 +32,10 @@ RUN rm -rf ./*
 # Copy published Blazor WebAssembly files
 COPY --from=build /app/publish/wwwroot .
 
+# Copy startup script to update configuration at runtime
+COPY VanityNumber.Web/update-config.sh /usr/local/bin/update-config.sh
+RUN chmod +x /usr/local/bin/update-config.sh
+
 # Copy custom nginx configuration (already configured for port 8080)
 COPY VanityNumber.Web/nginx.conf /etc/nginx/nginx.conf
 
@@ -48,5 +52,5 @@ EXPOSE 8080
 # Switch to non-root user
 USER nginx
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start nginx with configuration update
+CMD ["/usr/local/bin/update-config.sh"]

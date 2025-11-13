@@ -8,9 +8,14 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Configure HttpClient for API calls
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7001/";
+var baseAddress = apiBaseUrl.StartsWith("http") 
+    ? new Uri(apiBaseUrl) 
+    : new Uri(new Uri(builder.HostEnvironment.BaseAddress), apiBaseUrl);
+
 builder.Services.AddScoped(sp => new HttpClient 
 { 
-    BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7001/") 
+    BaseAddress = baseAddress
 });
 
 // Register the API service

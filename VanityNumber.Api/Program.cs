@@ -8,7 +8,23 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorApp", policy =>
     {
-        policy.WithOrigins("https://localhost:5001", "http://localhost:5000", "https://localhost:7002", "http://localhost:5002", "https://localhost:7155")
+        // Try to get CORS origins from environment variable first (for Kubernetes)
+        var corsOriginsEnv = builder.Configuration["CORS_ORIGINS"];
+        string[] corsOrigins;
+
+        if (!string.IsNullOrWhiteSpace(corsOriginsEnv))
+        {
+            // Split comma-separated environment variable
+            corsOrigins = corsOriginsEnv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        }
+        else
+        {
+            // Fall back to appsettings.json configuration
+            corsOrigins = builder.Configuration.GetSection("CorsOrigins").Get<string[]>()
+                ?? new[] { "http://localhost:5000" };
+        }
+
+        policy.WithOrigins(corsOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -28,14 +44,14 @@ builder.Services.AddOpenApiDocument(config =>
     config.Title = "Vanity Number API";
     config.Version = "v1";
     config.Description = "API for converting phone numbers to vanity numbers using Dutch, English, and Urban dictionaries.";
-    
+
     // Use relative URLs - no hardcoded server
     config.PostProcess = document =>
     {
         document.Servers.Clear(); // Remove default server URLs to make it relative
         document.Info.Description += "\n\nAPI uses XML documentation for detailed endpoint descriptions.";
     };
-    
+
     // XML comments would go here if XML documentation is enabled in the project
 });
 

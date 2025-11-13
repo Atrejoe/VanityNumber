@@ -4,20 +4,35 @@ services:
       context: .
       dockerfile: ./VanityNumber.Api/Dockerfile
     container_name: vanity-number-api
-    ports:
-      - "8081:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
+      - CORS_ORIGINS=http://localhost:8083
     restart: unless-stopped
 
-  vanity-web:
+  vanity-web-gateway:
     build:
       context: .
       dockerfile: ./VanityNumber.Web/Dockerfile
-    container_name: vanity-number-web
-    ports:
-      - "8082:8080"
+    container_name: vanity-number-web-gateway
+    environment:
+      - API_BASE_URL=/
     restart: unless-stopped
     depends_on:
       - vanity-api
+
+  vanity-gateway:
+    build:
+      context: .
+      dockerfile: ./gateway/Dockerfile
+    container_name: vanity-number-gateway
+    ports:
+      - "8083:8080"
+    environment:
+      - API_BACKEND_URL=vanity-api:8080
+      - WEB_BACKEND_URL=vanity-web-gateway:8080
+    restart: unless-stopped
+    depends_on:
+      - vanity-api
+      - vanity-web-gateway
+
