@@ -2,6 +2,15 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS build
 WORKDIR /src
 
+# Install required dependencies for wasm-tools workload
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip clang build-essential && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install wasm-tools workload for optimized Blazor WebAssembly builds
+RUN dotnet workload install wasm-tools
+
 # Copy solution file
 COPY VanityNumber.sln ./
 
