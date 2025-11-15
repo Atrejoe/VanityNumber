@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using VanityNumber.Api.Controllers;
-using VanityNumber.Core.Models;
+using VanityNumber.Contracts.Models;
 using VanityNumber.Core.Services;
 
 namespace VanityNumber.Tests;

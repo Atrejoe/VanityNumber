@@ -1,4 +1,4 @@
-using VanityNumber.Core.Models;
+using VanityNumber.Contracts.Models;
 
 namespace VanityNumber.Core.Services;
 

@@ -16,14 +16,14 @@ COPY VanityNumber.sln ./
 
 # Copy project files for restore (improves Docker layer caching)
 COPY VanityNumber.Web/VanityNumber.Web.csproj VanityNumber.Web/
-COPY VanityNumber.Core/VanityNumber.Core.csproj VanityNumber.Core/
+COPY VanityNumber.Contracts/VanityNumber.Contracts.csproj VanityNumber.Contracts/
 
 # Restore dependencies
 RUN dotnet restore VanityNumber.Web/VanityNumber.Web.csproj
 
 # Copy all source files
 COPY VanityNumber.Web/ VanityNumber.Web/
-COPY VanityNumber.Core/ VanityNumber.Core/
+COPY VanityNumber.Contracts/ VanityNumber.Contracts/
 
 # Build and publish the Blazor WebAssembly application
 WORKDIR /src/VanityNumber.Web

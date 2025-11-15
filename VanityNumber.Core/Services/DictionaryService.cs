@@ -1,5 +1,5 @@
-using VanityNumber.Core.Models;
 using System.Reflection;
+using VanityNumber.Contracts.Models;
 
 namespace VanityNumber.Core.Services;
 

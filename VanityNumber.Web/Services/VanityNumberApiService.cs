@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using VanityNumber.Core.Models;
+using VanityNumber.Contracts.Models;
 
 namespace VanityNumber.Web.Services;
 

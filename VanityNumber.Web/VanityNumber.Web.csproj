@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,7 +8,25 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>$(NoWarn);1591;S6966;S1075</NoWarn>
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    
+    <!-- Enable trimming for smaller bundle size -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    
+    <!-- Optimize bundle size -->
+    <BlazorWebAssemblyLoadAllGlobalizationData>false</BlazorWebAssemblyLoadAllGlobalizationData>
+    <BlazorEnableCompression>true</BlazorEnableCompression>
+    
+    <!-- Use Microsoft CDN for framework files (enables browser caching across sites) -->
+    <BlazorEnableTimeZoneSupport>false</BlazorEnableTimeZoneSupport>
+    <RunAOTCompilation>false</RunAOTCompilation>
   </PropertyGroup>
+
+  <!-- Load Blazor runtime from CDN in production -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <BlazorWebAssemblyLazyLoad Include="*.wasm" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0-rc.2.25502.107" />
@@ -20,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VanityNumber.Core\VanityNumber.Core.csproj" />
+    <ProjectReference Include="..\VanityNumber.Contracts\VanityNumber.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

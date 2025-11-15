@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace VanityNumber.Core.Models;
+namespace VanityNumber.Contracts.Models;
 
 /// <summary>
 /// Request model for converting a phone number to vanity numbers.

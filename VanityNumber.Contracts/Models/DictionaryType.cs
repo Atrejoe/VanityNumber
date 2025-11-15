@@ -1,4 +1,4 @@
-namespace VanityNumber.Core.Models;
+namespace VanityNumber.Contracts.Models;
 
 /// <summary>
 /// Represents the types of dictionaries available for vanity number generation.

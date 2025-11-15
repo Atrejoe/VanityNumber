@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using VanityNumber.Core.Models;
+using VanityNumber.Contracts.Models;
 
 namespace VanityNumber.Api.Validation;
 

@@ -32,4 +32,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\VanityNumber.Contracts\VanityNumber.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>
