@@ -1,3 +1,19 @@
 @inherits LayoutComponentBase
+@inject IJSRuntime JS
 
 @Body
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Hide loading screen by adding class to body
+            await JS.InvokeVoidAsync("eval", "document.body.classList.add('blazor-loaded')");
+            
+            // Remove loading screen from DOM after fade animation completes
+            await Task.Delay(500);
+            await JS.InvokeVoidAsync("eval", "document.getElementById('loading-screen')?.remove()");
+        }
+    }
+}
