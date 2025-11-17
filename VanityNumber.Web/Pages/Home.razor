@@ -1,7 +1,9 @@
 @page "/"
 @using VanityNumber.Web.Services
 @using VanityNumber.Web.Components
+@using Microsoft.AspNetCore.Components
 @inject VanityNumberService ApiService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Vanity Number Generator</PageTitle>
 
@@ -39,7 +41,8 @@
 
                 <div class="form-group">
                     <label class="form-label">Phone Number</label>
-                    <InputText @bind-Value="request.PhoneNumber" 
+                    <InputText @ref="phoneNumberInput"
+                               @bind-Value="request.PhoneNumber" 
                                class="form-input" 
                                placeholder="e.g., 555-1234 or 0612345678" />
                     <ValidationMessage For="@(() => request.PhoneNumber)" />
@@ -159,6 +162,7 @@
     private string errorMessage = string.Empty;
     private string errorDetails = string.Empty;
     private bool isLoading = false;
+    private InputText? phoneNumberInput;
 
     private bool useDutch = true;
     private bool useEnglish = true;
@@ -170,6 +174,29 @@
         request.MaxResults = 20;
         request.MinWordLength = 3;
         request.PhoneNumber = string.Empty;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && phoneNumberInput?.Element is not null)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("eval", $"document.getElementById('{phoneNumberInput.Element.Value.Id}').focus()");
+            }
+            catch
+            {
+                // Fallback: try a different approach
+                try
+                {
+                    await phoneNumberInput.Element.Value.FocusAsync();
+                }
+                catch
+                {
+                    // If both methods fail, silently ignore - focus is a nice-to-have feature
+                }
+            }
+        }
     }
 
     private void ToggleDictionary(DictionaryType dict, bool isChecked)

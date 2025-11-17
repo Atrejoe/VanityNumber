@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: atreyu/vanitynumber.web:0.4.2
+        image: atreyu/vanitynumber.web:0.4.4
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
