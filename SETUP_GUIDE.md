@@ -6,9 +6,9 @@ A modern, mobile-friendly **Blazor WebAssembly** front-end application has been 
 
 ## 📁 Project Structure
 
-```
-naamnummers/
-├── VanityNumber/              # Backend API
+``` txt
+root/
+├── VanityNumber.Api/          # Backend API
 ├── VanityNumber.Core/         # Core business logic
 ├── VanityNumber.Tests/        # API tests
 ├── VanityNumber.Web/          # ⭐ NEW: Blazor WebAssembly Frontend

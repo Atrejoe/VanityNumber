@@ -3,16 +3,47 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="description" content="Transform your phone number into memorable vanity numbers using dictionary words" />
     <meta name="theme-color" content="#667eea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Vanity Numbers" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Vanity Numbers" />
+    
     <title>Vanity Number Generator</title>
     <base href="/" />
+    
+    <!-- Cache busting version -->
+    <meta name="build-version" content="{{BUILD_VERSION}}" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json?v={{BUILD_VERSION}}" />
+    
+    <!-- Favicons - Multi-resolution -->
+    <link rel="icon" type="image/png" sizes="16x16" href="icon-16x16.png?v={{BUILD_VERSION}}" />
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-32x32.png?v={{BUILD_VERSION}}" />
+    <link rel="icon" type="image/png" sizes="48x48" href="icon-48x48.png?v={{BUILD_VERSION}}" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192x192.png?v={{BUILD_VERSION}}" />
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512x512.png?v={{BUILD_VERSION}}" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-192x192.png?v={{BUILD_VERSION}}" />
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-192x192.png?v={{BUILD_VERSION}}" />
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-192x192.png?v={{BUILD_VERSION}}" />
+    <link rel="apple-touch-icon" sizes="120x120" href="icon-128x128.png?v={{BUILD_VERSION}}" />
+    
+    <!-- Stylesheets with cache busting -->
     <link rel="preload" id="webassembly" />
-    <link rel="stylesheet" href="css/app.css" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <link href="VanityNumber.Web.styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/app.css?v={{BUILD_VERSION}}" />
+    <link href="VanityNumber.Web.styles.css?v={{BUILD_VERSION}}" rel="stylesheet" />
+    
+    <!-- Theme Manager - Load early for no flash -->
+    <script src="js/theme-manager.js?v={{BUILD_VERSION}}" type="module"></script>
+    
     <script type="importmap"></script>
+    
     <style>
         /* Loading screen styles - inline for fast rendering */
         #loading-screen {
@@ -77,12 +108,24 @@
             pointer-events: none;
         }
 
+        /* Dark mode loading screen */
+        body[data-theme="dark"] #loading-screen {
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d1b3d 100%);
+        }
+
+        body[data-theme="dark"] #loading-screen::before {
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(88, 86, 214, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 107, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+        }
+
         @media (prefers-color-scheme: dark) {
-            #loading-screen {
+            body:not([data-theme]) #loading-screen {
                 background: linear-gradient(135deg, #1e1e2e 0%, #2d1b3d 100%);
             }
 
-            #loading-screen::before {
+            body:not([data-theme]) #loading-screen::before {
                 background: 
                     radial-gradient(circle at 20% 50%, rgba(88, 86, 214, 0.15) 0%, transparent 50%),
                     radial-gradient(circle at 80% 80%, rgba(255, 107, 237, 0.1) 0%, transparent 50%),
@@ -111,6 +154,27 @@
     </div>
 
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+    
+    <!-- Register Service Worker for PWA with cache busting -->
+    <script>
+        // Get build version for cache busting
+        const buildVersion = document.querySelector('meta[name="build-version"]')?.content || Date.now();
+        
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register(`/service-worker.js?v=${buildVersion}`)
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration.scope);
+                        
+                        // Check for updates
+                        registration.update();
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 
 </html>

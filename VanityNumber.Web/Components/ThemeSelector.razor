@@ -1,0 +1,55 @@
+@inject IJSRuntime JS
+
+<div class="theme-selector">
+    <button class="theme-btn @(currentTheme == "light" ? "active" : "")" 
+            @onclick="@(() => SetTheme("light"))" 
+            title="Light mode">
+        ☀️ Light
+    </button>
+    <button class="theme-btn @(currentTheme == "dark" ? "active" : "")" 
+            @onclick="@(() => SetTheme("dark"))"
+            title="Dark mode">
+        🌙 Dark
+    </button>
+    <button class="theme-btn @(currentTheme == "system" ? "active" : "")" 
+            @onclick="@(() => SetTheme("system"))"
+            title="System default">
+        💻 Auto
+    </button>
+</div>
+
+@code {
+    private string currentTheme = "system";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Get current theme from theme manager
+                currentTheme = await JS.InvokeAsync<string>("eval", 
+                    "window.themeManager.getCurrentTheme()");
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting theme: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task SetTheme(string theme)
+    {
+        try
+        {
+            currentTheme = theme;
+            await JS.InvokeVoidAsync("eval", 
+                $"window.themeManager.setTheme('{theme}')");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error setting theme: {ex.Message}");
+        }
+    }
+}

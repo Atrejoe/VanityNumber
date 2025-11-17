@@ -21,13 +21,53 @@ COPY VanityNumber.Contracts/VanityNumber.Contracts.csproj VanityNumber.Contracts
 # Restore dependencies
 RUN dotnet restore VanityNumber.Web/VanityNumber.Web.csproj
 
-# Copy all source files
+# Copy all source files (including scripts)
 COPY VanityNumber.Web/ VanityNumber.Web/
 COPY VanityNumber.Contracts/ VanityNumber.Contracts/
 
 # Build and publish the Blazor WebAssembly application
 WORKDIR /src/VanityNumber.Web
 RUN dotnet publish VanityNumber.Web.csproj -c Release -o /app/publish
+
+# Debug: List files to see what we have
+RUN echo "=== Files in current directory ===" && ls -la
+
+# Apply cache busting with build timestamp
+ARG BUILD_VERSION
+
+# Apply cache busting - use inline script since file might not be there
+RUN BUILD_VERSION="${BUILD_VERSION:-$(date +%s)}" && \
+    echo "🔄 Applying cache busting with version: $BUILD_VERSION" && \
+    WWW_ROOT="/app/publish/wwwroot" && \
+    if [ -f "$WWW_ROOT/index.html" ]; then \
+        echo "  ✓ Updating index.html"; \
+        sed -i "s/{{BUILD_VERSION}}/$BUILD_VERSION/g" "$WWW_ROOT/index.html"; \
+    else \
+        echo "  ⚠ Warning: index.html not found"; \
+    fi && \
+    if [ -f "$WWW_ROOT/manifest.json" ]; then \
+        echo "  ✓ Updating manifest.json"; \
+        if grep -q '"version"' "$WWW_ROOT/manifest.json"; then \
+            sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$BUILD_VERSION\"/g" "$WWW_ROOT/manifest.json"; \
+        else \
+            sed -i "s/\"name\": \"/\"version\": \"$BUILD_VERSION\",\n  \"name\": \"/g" "$WWW_ROOT/manifest.json"; \
+        fi; \
+    fi && \
+    if [ -f "$WWW_ROOT/service-worker.js" ]; then \
+        echo "  ✓ Updating service-worker.js"; \
+        sed -i "s/const CACHE_NAME = 'vanity-number-v[^']*'/const CACHE_NAME = 'vanity-number-v$BUILD_VERSION'/g" "$WWW_ROOT/service-worker.js"; \
+        sed -i "s/const RUNTIME_CACHE = 'vanity-number-runtime'/const RUNTIME_CACHE = 'vanity-number-runtime-v$BUILD_VERSION'/g" "$WWW_ROOT/service-worker.js"; \
+    fi && \
+    echo "✅ Cache busting applied successfully" && \
+    echo "📦 Build Version: $BUILD_VERSION"
+
+# Verify publish output
+RUN echo "=== Published files ===" && \
+    ls -lah /app/publish/wwwroot && \
+    echo "=== Framework files ===" && \
+    ls -lah /app/publish/wwwroot/_framework/ || echo "No _framework directory" && \
+    echo "=== Build Version Check ===" && \
+    grep -o 'build-version" content="[^"]*"' /app/publish/wwwroot/index.html || echo "⚠️  No build version found - cache busting may not have worked"
 
 # Build runtime image using nginx to serve static files
 FROM nginx:alpine AS final
@@ -40,6 +80,14 @@ RUN rm -rf ./*
 
 # Copy published Blazor WebAssembly files
 COPY --from=build /app/publish/wwwroot .
+
+# Verify files were copied
+RUN echo "=== Files in nginx html root ===" && \
+    ls -lah /usr/share/nginx/html && \
+    echo "=== Framework files ===" && \
+    ls -lah /usr/share/nginx/html/_framework/ || echo "No _framework directory" && \
+    echo "=== Checking cache busting ===" && \
+    grep -o 'build-version" content="[^"]*"' /usr/share/nginx/html/index.html || echo "No build version found"
 
 # Copy startup script to update configuration at runtime
 COPY VanityNumber.Web/update-config.sh /usr/local/bin/update-config.sh

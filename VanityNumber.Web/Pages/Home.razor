@@ -1,8 +1,11 @@
 @page "/"
 @using VanityNumber.Web.Services
+@using VanityNumber.Web.Components
 @inject VanityNumberService ApiService
 
 <PageTitle>Vanity Number Generator</PageTitle>
+
+<ThemeSelector />
 
 <div class="app-container">
     <div class="header">
