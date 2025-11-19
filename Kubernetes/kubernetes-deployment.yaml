@@ -5,15 +5,18 @@ metadata:
   namespace: vanity-robertsirre-nl
   labels:
     app: vanity-robertsirre-nl
+    component: api
 spec:
   replicas: 4
   selector:
     matchLabels:
       app: vanity-robertsirre-nl
+      component: api
   template:
     metadata:
       labels:
         app: vanity-robertsirre-nl
+        component: api
     spec:
       containers:
       - name: api
@@ -22,11 +25,64 @@ spec:
         ports:
         - containerPort: 8080
           name: http
-        # env:
+        env:
+        # Sentry Configuration - DSN from Secret (optional)
+        - name: Sentry__Dsn
+          valueFrom:
+            secretKeyRef:
+              name: vanity-sentry-secrets
+              key: api-dsn
+              optional: true  # Don't fail if secret is missing or empty
+        
+        # Sentry Configuration - Settings from ConfigMap (optional)
+        - name: Sentry__Environment
+          valueFrom:
+            configMapKeyRef:
+              name: vanity-sentry-config
+              key: api-environment
+              optional: true
+        
+        - name: Sentry__TracesSampleRate
+          valueFrom:
+            configMapKeyRef:
+              name: vanity-sentry-config
+              key: api-traces-sample-rate
+              optional: true
+        
+        - name: Sentry__SendDefaultPii
+          valueFrom:
+            configMapKeyRef:
+              name: vanity-sentry-config
+              key: api-send-default-pii
+              optional: true
+        
+        - name: Sentry__Debug
+          valueFrom:
+            configMapKeyRef:
+              name: vanity-sentry-config
+              key: api-debug
+              optional: true
+        
+        - name: Sentry__AttachStacktrace
+          valueFrom:
+            configMapKeyRef:
+              name: vanity-sentry-config
+              key: api-attach-stacktrace
+              optional: true
+        
+        - name: Sentry__MaxBreadcrumbs
+          valueFrom:
+            configMapKeyRef:
+              name: vanity-sentry-config
+              key: api-max-breadcrumbs
+              optional: true
+        
+        # Uncomment for development/debugging
         # - name: ASPNETCORE_ENVIRONMENT
         #   value: "Development"
         # - name: ASPNETCORE_URLS
         #   value: "http://0.0.0.0:5000/"
+        
         resources:
           limits:
             cpu: "1"
@@ -43,6 +99,7 @@ spec:
           capabilities:
             drop:
             - ALL
+      
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -51,4 +108,5 @@ spec:
               labelSelector:
                 matchLabels:
                   app: vanity-robertsirre-nl
+                  component: api
               topologyKey: kubernetes.io/hostname

@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vanity-sentry-secrets
+  namespace: vanity-robertsirre-nl
+  labels:
+    app: vanity-robertsirre-nl
+    component: monitoring
+type: Opaque
+stringData:
+  # Backend API Sentry DSN
+  # Replace with your actual Sentry DSN for the API
+  # Leave empty to disable Sentry monitoring
+  api-dsn: ""
+  
+  # Front-end Web Sentry DSN
+  # Replace with your actual Sentry DSN for the Web application
+  # Leave empty to disable Sentry monitoring for front-end
+  web-dsn: ""
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vanity-sentry-config
+  namespace: vanity-robertsirre-nl
+  labels:
+    app: vanity-robertsirre-nl
+    component: monitoring
+data:
+  # Sentry Configuration for API
+  api-environment: "Production"
+  api-traces-sample-rate: "0.1"
+  api-send-default-pii: "false"
+  api-debug: "false"
+  api-attach-stacktrace: "true"
+  api-max-breadcrumbs: "50"
+  
+  # Sentry Configuration for Web (Front-end)
+  web-environment: "Production"
+  web-traces-sample-rate: "0.1"
+  web-debug: "false"

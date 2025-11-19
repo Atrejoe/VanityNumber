@@ -21,12 +21,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kubernetes", "Kubernetes", "{77570646-66F8-4D05-A2FB-C9DE65E8DA49}"
 	ProjectSection(SolutionItems) = preProject
+		Kubernetes\kubernetes-configmap-gateway.yaml = Kubernetes\kubernetes-configmap-gateway.yaml
+		Kubernetes\kubernetes-configmap.yaml = Kubernetes\kubernetes-configmap.yaml
+		Kubernetes\kubernetes-deployment-api.yaml = Kubernetes\kubernetes-deployment-api.yaml
+		Kubernetes\kubernetes-deployment-gateway.yaml = Kubernetes\kubernetes-deployment-gateway.yaml
+		Kubernetes\kubernetes-deployment-web.yaml = Kubernetes\kubernetes-deployment-web.yaml
 		Kubernetes\kubernetes-deployment.yaml = Kubernetes\kubernetes-deployment.yaml
 		Kubernetes\kubernetes-namespace.yaml = Kubernetes\kubernetes-namespace.yaml
 		Kubernetes\kubernetes-service-api.yaml = Kubernetes\kubernetes-service-api.yaml
 		Kubernetes\kubernetes-service-gateway.yaml = Kubernetes\kubernetes-service-gateway.yaml
 		Kubernetes\kubernetes-service-web.yaml = Kubernetes\kubernetes-service-web.yaml
 		Kubernetes\kubernetes-service.yaml = Kubernetes\kubernetes-service.yaml
+		Kubernetes\kubernetes-sentry.yaml = Kubernetes\kubernetes-sentry.yaml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VanityNumber.Contracts", "VanityNumber.Contracts\VanityNumber.Contracts.csproj", "{2A9F86A0-F636-4CF5-9EA6-8FE2C36065C9}"

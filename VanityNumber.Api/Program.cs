@@ -1,5 +1,44 @@
 using System.Text.Json.Serialization;
 using VanityNumber.Core.Services;
+using Sentry;
+
+// Initialize Sentry EARLY - before creating builder
+// This ensures startup errors and logging are captured
+var sentryDsn = Environment.GetEnvironmentVariable("Sentry__Dsn") 
+    ?? GetConfigurationValue("Sentry:Dsn");
+
+IDisposable? sentryDisposable = null;
+
+if (!string.IsNullOrWhiteSpace(sentryDsn))
+{
+    sentryDisposable = SentrySdk.Init(options =>
+    {
+        options.Dsn = sentryDsn;
+        options.Environment = Environment.GetEnvironmentVariable("Sentry__Environment") 
+            ?? GetConfigurationValue("Sentry:Environment") 
+            ?? "Production";
+        options.TracesSampleRate = double.TryParse(
+            Environment.GetEnvironmentVariable("Sentry__TracesSampleRate") 
+            ?? GetConfigurationValue("Sentry:TracesSampleRate"), 
+            out var rate) ? rate : 0.1;
+        options.Debug = false; // Can be overridden by env var
+        options.SendDefaultPii = false;
+        options.AttachStacktrace = true;
+        options.MaxBreadcrumbs = 50;
+        options.AutoSessionTracking = true;
+        options.IsGlobalModeEnabled = true;
+        
+        // Set release version
+        options.Release = typeof(Program).Assembly.GetName().Version?.ToString();
+        
+        // Add custom tags
+        options.SetBeforeSend((sentryEvent, hint) =>
+        {
+            sentryEvent.SetTag("service", "vanity-number-api");
+            return sentryEvent;
+        });
+    });
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +101,12 @@ builder.Services.AddSingleton<IVanityNumberService, VanityNumberService>();
 
 var app = builder.Build();
 
+// Use Sentry request tracing (only if initialized)
+if (sentryDisposable != null)
+{
+    app.UseSentryTracing();
+}
+
 // Configure CORS
 app.UseCors("AllowBlazorApp");
 
@@ -78,3 +123,25 @@ app.UseAuthorization();
 app.MapControllers();
 
 await app.RunAsync();
+
+// Dispose Sentry on shutdown
+sentryDisposable?.Dispose();
+
+// Helper method to get configuration value early (before builder is created)
+static string? GetConfigurationValue(string key)
+{
+    try
+    {
+        var config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+            .Build();
+        
+        return config[key];
+    }
+    catch
+    {
+        return null;
+    }
+}
