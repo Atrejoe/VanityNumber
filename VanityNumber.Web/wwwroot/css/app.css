@@ -335,6 +335,23 @@ body::before {
     cursor: not-allowed;
 }
 
+.btn-secondary {
+    background: linear-gradient(135deg, var(--button-bg-start) 0%, var(--button-bg-end) 100%);
+    border: 1px solid var(--button-border);
+    color: var(--text-primary);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--button-hover-bg-start) 0%, var(--button-hover-bg-end) 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:active {
+    transform: scale(0.98);
+}
+
 .btn-block {
     width: 100%;
 }

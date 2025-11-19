@@ -41,10 +41,23 @@
 
                 <div class="form-group">
                     <label class="form-label">Phone Number</label>
-                    <InputText @ref="phoneNumberInput"
-                               @bind-Value="request.PhoneNumber" 
-                               class="form-input" 
-                               placeholder="e.g., 555-1234 or 0612345678" />
+                    <div style="display: flex; gap: 0.5rem; align-items: stretch;">
+                        <InputText @ref="phoneNumberInput"
+                                   @bind-Value="request.PhoneNumber" 
+                                   class="form-input" 
+                                   style="flex: 1;"
+                                   placeholder="e.g., 555-1234 or 0612345678" />
+                        @if (isContactPickerSupported)
+                        {
+                            <button type="button" 
+                                    class="btn btn-secondary" 
+                                    @onclick="SelectFromContacts"
+                                    style="white-space: nowrap; padding: 0.5rem 1rem;"
+                                    title="Select from contacts">
+                                📇 Contacts
+                            </button>
+                        }
+                    </div>
                     <ValidationMessage For="@(() => request.PhoneNumber)" />
                 </div>
 
@@ -163,6 +176,7 @@
     private string errorDetails = string.Empty;
     private bool isLoading = false;
     private InputText? phoneNumberInput;
+    private bool isContactPickerSupported = false;
 
     private bool useDutch = true;
     private bool useEnglish = true;
@@ -178,24 +192,51 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && phoneNumberInput?.Element is not null)
+        if (firstRender)
         {
+            // Check if Contact Picker API is supported
             try
             {
-                await JSRuntime.InvokeVoidAsync("eval", $"document.getElementById('{phoneNumberInput.Element.Value.Id}').focus()");
+                isContactPickerSupported = await JSRuntime.InvokeAsync<bool>("contactPicker.isSupported");
+                StateHasChanged();
             }
             catch
             {
-                // Fallback: try a different approach
+                // If the check fails, assume not supported
+                isContactPickerSupported = false;
+            }
+
+            // Focus the phone number input
+            if (phoneNumberInput?.Element is not null)
+            {
                 try
                 {
                     await phoneNumberInput.Element.Value.FocusAsync();
                 }
                 catch
                 {
-                    // If both methods fail, silently ignore - focus is a nice-to-have feature
+                    // Silently ignore focus errors
                 }
             }
+        }
+    }
+
+    private async Task SelectFromContacts()
+    {
+        try
+        {
+            var phoneNumber = await JSRuntime.InvokeAsync<string>("contactPicker.pickContact");
+            
+            if (!string.IsNullOrEmpty(phoneNumber))
+            {
+                request.PhoneNumber = phoneNumber;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to access contacts.";
+            errorDetails = $"The Contact Picker API may not be supported or permission was denied.\n\nTechnical details:\n{ex.Message}";
         }
     }
 
