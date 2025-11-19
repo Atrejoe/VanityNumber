@@ -8,6 +8,11 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
       - CORS_ORIGINS=http://localhost:8083
+      # Optional: Sentry monitoring for API
+      # Uncomment and set your API Sentry DSN
+      # - Sentry__Dsn=https://your-api-sentry-dsn@sentry.io/project-id
+      # - Sentry__Environment=Production
+      # - Sentry__TracesSampleRate=0.1
     restart: unless-stopped
 
   vanity-web-gateway:
@@ -17,6 +22,12 @@ services:
     container_name: vanity-number-web-gateway
     environment:
       - API_BASE_URL=/
+      # Optional: Sentry monitoring for Web (runtime configuration)
+      # Uncomment and set your Web Sentry DSN (separate from API DSN)
+      # - SENTRY_WEB_DSN=https://your-web-sentry-dsn@sentry.io/project-id
+      # - SENTRY_WEB_ENVIRONMENT=Production
+      # - SENTRY_WEB_SAMPLE_RATE=0.1
+      # - SENTRY_WEB_DEBUG=false
     restart: unless-stopped
     depends_on:
       - vanity-api
