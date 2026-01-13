@@ -37,10 +37,7 @@ public class VanityNumberService : IVanityNumberService
     /// <inheritdoc />
     public VanityNumberResult GenerateVanityNumbers(VanityNumberRequest request)
     {
-        var result = new VanityNumberResult
-        {
-            OriginalNumber = request.PhoneNumber
-        };
+        var result = new VanityNumberResult { OriginalNumber = request.PhoneNumber };
 
         // Clean the phone number (remove spaces, dashes, etc.)
         var cleanNumber = new string(request.PhoneNumber.Where(char.IsDigit).ToArray());
@@ -80,29 +77,23 @@ public class VanityNumberService : IVanityNumberService
                 foreach (var combo in combinations)
                 {
                     var foundWords = _dictionaryService.FindWords(new[] { combo.Letters }, dictionaryTypes);
-                    
                     foreach (var word in foundWords)
                     {
-                        // Determine which dictionary(ies) contain this word
                         var matchedDictionaries = GetMatchedDictionaries(word, dictionaryTypes);
-                        
-                        // Build vanity number using leet speak tracking
                         var vanityDisplay = combo.ToVanityDisplay();
                         var vanityNumber = BuildVanityNumberWithTracking(cleanNumber, start, length, vanityDisplay);
-                        
+
+                        var entry = _dictionaryService.GetEntry(word, matchedDictionaries);
                         matches.Add(new VanityMatch
                         {
                             VanityNumber = vanityNumber,
                             Word = word,
                             DictionaryType = matchedDictionaries,
                             StartPosition = start,
-                            Length = length
+                            Length = length,
+                            Definition = entry?.Definition ?? string.Empty
                         });
-
-                        if (matches.Count >= maxResults * 3) // Get more than needed, we'll filter later
-                        {
-                            break;
-                        }
+                        if (matches.Count >= maxResults * 3) { break; }
                     }
                 }
             }

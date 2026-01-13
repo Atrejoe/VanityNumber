@@ -36,4 +36,8 @@
     <ProjectReference Include="..\VanityNumber.Contracts\VanityNumber.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Dictionaries\" />
+  </ItemGroup>
+
 </Project>

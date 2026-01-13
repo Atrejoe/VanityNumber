@@ -91,6 +91,11 @@ public class VanityMatch
     /// Gets or sets the length of the word in digits.
     /// </summary>
     public int Length { get; set; }
+    
+    /// <summary>
+    /// Short definition of the word (may be empty if not available).
+    /// </summary>
+    public string Definition { get; set; } = string.Empty;
 }
 
 /// <summary>

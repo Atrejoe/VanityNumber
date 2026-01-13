@@ -148,6 +148,10 @@
                             <div class="result-meta">
                                 Position: @match.StartPosition | Length: @match.Length digits
                             </div>
+                            @if (!string.IsNullOrWhiteSpace(match.Definition))
+                            {
+                                <div class="result-definition">@match.Definition</div>
+                            }
                         </div>
                     }
                 }

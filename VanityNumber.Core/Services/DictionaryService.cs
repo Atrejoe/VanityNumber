@@ -1,5 +1,6 @@
 using System.Reflection;
 using VanityNumber.Contracts.Models;
+using VanityNumber.Core.Models;
 
 namespace VanityNumber.Core.Services;
 
@@ -30,6 +31,9 @@ public interface IDictionaryService
     /// <param name="dictionaryType">The dictionary type (must be a single value, not combined).</param>
     /// <returns>The number of words in the specified dictionary, or 0 if the type is None or All.</returns>
     int GetWordCount(DictionaryType dictionaryType);
+
+    /// <summary>Gets a full dictionary entry (original + definition) from the first matching dictionary among the specified types.</summary>
+    DictionaryEntry? GetEntry(string word, DictionaryType dictionaryTypes);
 }
 
 /// <summary>
@@ -37,10 +41,10 @@ public interface IDictionaryService
 /// </summary>
 public class DictionaryService : IDictionaryService
 {
-    // Maps normalized word -> original word (with diacritics)
-    private readonly Dictionary<string, string> _dutchWords;
-    private readonly Dictionary<string, string> _englishWords;
-    private readonly Dictionary<string, string> _urbanWords;
+    // Maps normalized word -> entry (original form + definition)
+    private readonly Dictionary<string, DictionaryEntry> _dutchWords;
+    private readonly Dictionary<string, DictionaryEntry> _englishWords;
+    private readonly Dictionary<string, DictionaryEntry> _urbanWords;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DictionaryService"/> class.
@@ -56,96 +60,82 @@ public class DictionaryService : IDictionaryService
 
     /// <summary>
     /// Loads a dictionary from an embedded resource.
-    /// Format: Each line is "NORMALIZED[tab]ORIGINAL" where ORIGINAL preserves diacritics.
+    /// Format per line:
+    /// NORMALIZED[tab]ORIGINAL
+    /// or NORMALIZED[tab]ORIGINAL[tab]DEFINITION
     /// </summary>
-    /// <param name="resourceName">Fully qualified name of the embedded resource.</param>
-    /// <returns>A dictionary mapping normalized words to their original forms.</returns>
-    /// <exception cref="FileNotFoundException">Thrown when the dictionary resource is not found.</exception>
-    private static Dictionary<string, string> LoadDictionary(string resourceName)
+    private static Dictionary<string, DictionaryEntry> LoadDictionary(string resourceName)
     {
-        var words = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var words = new Dictionary<string, DictionaryEntry>(StringComparer.OrdinalIgnoreCase);
         var assembly = Assembly.GetExecutingAssembly();
 
         using var stream = assembly.GetManifestResourceStream(resourceName)
             ?? throw new FileNotFoundException($"Dictionary resource '{resourceName}' not found. Available resources: {string.Join(", ", assembly.GetManifestResourceNames())}");
-        
+
         using var reader = new StreamReader(stream);
         while (!reader.EndOfStream)
         {
             var line = reader.ReadLine();
-            if (line != null)
-            {
-                var trimmed = line.Trim();
-                if (!string.IsNullOrWhiteSpace(trimmed))
-                {
-                    // Parse format: NORMALIZED[tab]ORIGINAL
-                    var parts = trimmed.Split('\t');
-                    var normalized = parts[0].ToUpperInvariant();
-                    var original = parts.Length > 1 ? parts[1] : parts[0];
-                    
-                    words[normalized] = original;
-                }
-            }
-        }
+            if (line == null) continue;
+            var trimmed = line.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed)) continue;
 
+            var parts = trimmed.Split('\t');
+            if (parts.Length == 0) continue;
+
+            var normalized = parts[0].ToUpperInvariant();
+            var original = parts.Length > 1 ? parts[1] : parts[0];
+            var definition = parts.Length > 2 ? parts[2] : string.Empty;
+            words[normalized] = new DictionaryEntry(original, definition);
+        }
         return words;
     }
 
     /// <inheritdoc />
     public bool IsWord(string word, DictionaryType dictionaryType)
     {
-        if (dictionaryType == DictionaryType.None)
-            return false;
-
+        if (dictionaryType == DictionaryType.None) return false;
         var upperWord = word.ToUpperInvariant();
-
-        if (dictionaryType.HasFlag(DictionaryType.Dutch) && _dutchWords.ContainsKey(upperWord))
-            return true;
-        if (dictionaryType.HasFlag(DictionaryType.English) && _englishWords.ContainsKey(upperWord))
-            return true;
-        if (dictionaryType.HasFlag(DictionaryType.Urban) && _urbanWords.ContainsKey(upperWord))
-            return true;
-
+        if (dictionaryType.HasFlag(DictionaryType.Dutch) && _dutchWords.ContainsKey(upperWord)) return true;
+        if (dictionaryType.HasFlag(DictionaryType.English) && _englishWords.ContainsKey(upperWord)) return true;
+        if (dictionaryType.HasFlag(DictionaryType.Urban) && _urbanWords.ContainsKey(upperWord)) return true;
         return false;
     }
 
     /// <inheritdoc />
     public IEnumerable<string> FindWords(IEnumerable<string> candidates, DictionaryType dictionaryTypes)
     {
-        if (dictionaryTypes == DictionaryType.None)
-            return Enumerable.Empty<string>();
-
+        if (dictionaryTypes == DictionaryType.None) return Enumerable.Empty<string>();
         var results = new List<string>();
-        
         foreach (var candidate in candidates)
         {
             var upperWord = candidate.ToUpperInvariant();
-            string? originalForm = null;
-            
-            // Try to find original form from dictionaries in order of preference
-            if (dictionaryTypes.HasFlag(DictionaryType.Dutch) && _dutchWords.TryGetValue(upperWord, out var dutchOriginal))
-                originalForm = dutchOriginal;
-            else if (dictionaryTypes.HasFlag(DictionaryType.English) && _englishWords.TryGetValue(upperWord, out var englishOriginal))
-                originalForm = englishOriginal;
-            else if (dictionaryTypes.HasFlag(DictionaryType.Urban) && _urbanWords.TryGetValue(upperWord, out var urbanOriginal))
-                originalForm = urbanOriginal;
-            
-            if (originalForm != null)
-                results.Add(originalForm);
+            DictionaryEntry? entry = null;
+            if (dictionaryTypes.HasFlag(DictionaryType.Dutch) && _dutchWords.TryGetValue(upperWord, out var dutchEntry)) entry = dutchEntry;
+            else if (dictionaryTypes.HasFlag(DictionaryType.English) && _englishWords.TryGetValue(upperWord, out var englishEntry)) entry = englishEntry;
+            else if (dictionaryTypes.HasFlag(DictionaryType.Urban) && _urbanWords.TryGetValue(upperWord, out var urbanEntry)) entry = urbanEntry;
+            if (entry != null) results.Add(entry.Original);
         }
-        
         return results;
     }
 
     /// <inheritdoc />
-    public int GetWordCount(DictionaryType dictionaryType)
+    public int GetWordCount(DictionaryType dictionaryType) => dictionaryType switch
     {
-        return dictionaryType switch
-        {
-            DictionaryType.Dutch => _dutchWords.Count,
-            DictionaryType.English => _englishWords.Count,
-            DictionaryType.Urban => _urbanWords.Count,
-            _ => 0
-        };
+        DictionaryType.Dutch => _dutchWords.Count,
+        DictionaryType.English => _englishWords.Count,
+        DictionaryType.Urban => _urbanWords.Count,
+        _ => 0
+    };
+
+    /// <inheritdoc />
+    public DictionaryEntry? GetEntry(string word, DictionaryType dictionaryTypes)
+    {
+        if (dictionaryTypes == DictionaryType.None) return null;
+        var upper = word.ToUpperInvariant();
+        if (dictionaryTypes.HasFlag(DictionaryType.Dutch) && _dutchWords.TryGetValue(upper, out var d)) return d;
+        if (dictionaryTypes.HasFlag(DictionaryType.English) && _englishWords.TryGetValue(upper, out var e)) return e;
+        if (dictionaryTypes.HasFlag(DictionaryType.Urban) && _urbanWords.TryGetValue(upper, out var u)) return u;
+        return null;
     }
 }
