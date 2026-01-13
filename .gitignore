@@ -73,3 +73,5 @@ artifacts/
 *.exe
 
 publish-output/
+
+Kubernetes/.monokle
