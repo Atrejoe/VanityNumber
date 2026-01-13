@@ -6,7 +6,7 @@ metadata:
   labels:
     app: vanity-robertsirre-nl
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - port: 80
     targetPort: 8080
