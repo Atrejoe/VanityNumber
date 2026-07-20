@@ -1,5 +1,5 @@
 # Use the official .NET 10 RC SDK image for building
-FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0-preview AS build
 WORKDIR /src
 
 # Install required dependencies for wasm-tools workload
