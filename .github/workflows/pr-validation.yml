@@ -1,0 +1,84 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs for the same PR
+concurrency:
+  group: pr-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write          # dorny/test-reporter publishes a check run
+  pull-requests: write   # sticky coverage comment on the PR
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore .NET workloads (wasm-tools for Blazor WebAssembly)
+        run: dotnet workload restore VanityNumber.sln
+
+      - name: Restore
+        run: dotnet restore VanityNumber.sln
+
+      - name: Build
+        run: dotnet build VanityNumber.sln --configuration Release --no-restore
+
+      - name: Test
+        run: >-
+          dotnet test VanityNumber.sln
+          --configuration Release
+          --no-build
+          --logger "trx"
+          --results-directory ./TestResults
+          --collect:"XPlat Code Coverage"
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: ${{ !cancelled() }}
+        with:
+          name: Test results
+          path: TestResults/**/*.trx
+          reporter: dotnet-trx
+
+      - name: Generate coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        if: ${{ !cancelled() }}
+        with:
+          reports: 'TestResults/*/coverage.cobertura.xml'
+          targetdir: coverage-report
+          reporttypes: 'Html;MarkdownSummaryGithub;Cobertura'
+
+      - name: Add coverage to job summary
+        if: ${{ !cancelled() }}
+        run: cat coverage-report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment coverage on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: ${{ !cancelled() }}
+        with:
+          header: coverage
+          path: coverage-report/SummaryGithub.md
+
+      - name: Upload test results & coverage report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: test-results-and-coverage
+          path: |
+            TestResults/**/*.trx
+            coverage-report/**
+          if-no-files-found: ignore
