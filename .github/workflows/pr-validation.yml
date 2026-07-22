@@ -67,7 +67,7 @@ jobs:
         run: cat coverage-report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment coverage on PR
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3.0.5
         if: ${{ !cancelled() }}
         with:
           header: coverage
