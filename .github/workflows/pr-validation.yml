@@ -74,7 +74,7 @@ jobs:
           path: coverage-report/SummaryGithub.md
 
       - name: Upload test results & coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: test-results-and-coverage
