@@ -54,19 +54,19 @@
                         <label class="checkbox-label">
                             <input type="checkbox" 
                                    checked="@useDutch" 
-                                   @onchange="@((e) => ToggleDictionary(DictionaryType.Dutch, (bool)e.Value))" />
+                                   @onchange="@((e) => ToggleDictionary(DictionaryType.Dutch, e.Value is true))" />
                             <span>🇳🇱 Dutch</span>
                         </label>
                         <label class="checkbox-label">
                             <input type="checkbox" 
                                    checked="@useEnglish" 
-                                   @onchange="@((e) => ToggleDictionary(DictionaryType.English, (bool)e.Value))" />
+                                   @onchange="@((e) => ToggleDictionary(DictionaryType.English, e.Value is true))" />
                             <span>🇬🇧 English</span>
                         </label>
                         <label class="checkbox-label">
                             <input type="checkbox" 
                                    checked="@useUrban" 
-                                   @onchange="@((e) => ToggleDictionary(DictionaryType.Urban, (bool)e.Value))" />
+                                   @onchange="@((e) => ToggleDictionary(DictionaryType.Urban, e.Value is true))" />
                             <span>🌆 Urban</span>
                         </label>
                     </div>
